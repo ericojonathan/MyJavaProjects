@@ -140,7 +140,9 @@ public class FileExplorer0 extends Application {
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue){
                 String[] ext = newValue.split("\\.");
                 
-                if(ext[1].equals("txt"))
+                if(ext[1].equals("txt") || 
+                   ext[1].equals("py") ||
+                   ext[1].equals("doc"))
                 {
                     String content = null;
                     FileReader reader = null;

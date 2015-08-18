@@ -1,5 +1,6 @@
-// I'm still having problem creating a  PDF preview for this; however the others
-// should be usable.
+// Thanks to Mr. Erwin 
+//(http://edwin.baculsoft.com/2010/12/how-to-convert-pdf-files-to-images-using-java/),
+// I'm able to make the pdf viewer working! :)
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -8,9 +9,23 @@
  */
 package fileexplorer0;
 
-
+import com.sun.pdfview.PDFFile;
+import com.sun.pdfview.PDFPage;
+import com.sun.pdfview.PDFViewer;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -36,6 +51,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
+import javax.imageio.ImageIO;
 /**
  *
  * @author Eric O. Jonathan
@@ -51,7 +67,18 @@ public class FileExplorer0 extends Application {
     Path path = Paths.get("");
     String pathStr = path.toAbsolutePath().toString();
     
-    String currentFolder = pathStr + "\\testFolder";
+    String currentFolder = pathStr + "\\testFolder\\";
+    
+    void Execute() throws Exception
+    {
+        File file = new File(currentFolder + "\\hagakure.pdf");
+        
+        PDFViewer pdfv = new PDFViewer(true);
+        pdfv.openFile(file);
+        pdfv.setEnabling();
+        pdfv.pack();
+        pdfv.setVisible(true);
+    }
     
     @Override
     public void start(Stage primaryStage) {             
@@ -68,9 +95,7 @@ public class FileExplorer0 extends Application {
         border.setStyle("-fx-border-color: black;");
         
         border.setTop(top);
-        BorderPane.setAlignment(top, Pos.CENTER);
-        
-        //If os is windows, then the default folder will be in C:\Users\ACER\Documents\DesktopExplorerFiles
+        BorderPane.setAlignment(top, Pos.CENTER);        
         
         String strRootItem = "Root Item";
         if(os.toLowerCase().contains("win")) strRootItem = "DesktopExplorerFiles";
@@ -128,11 +153,8 @@ public class FileExplorer0 extends Application {
                         reader.close();
                         
                         Text text = new Text(content);   
-//                        text.maxWidth(200);
                         TextFlow flow = new TextFlow(text);
                         flow.setMaxWidth(300);
-//                        FlowPane flow = new FlowPane(text);
-//                        flow.maxWidth(250);
                         ScrollPane pane = new ScrollPane(flow);
                         
                         BorderPane.setAlignment(pane, Pos.CENTER);
@@ -159,22 +181,46 @@ public class FileExplorer0 extends Application {
                 else if(ext[1].equals("pdf")){
                     try {
                             File file = new File(currentFolder + newValue);
+                                
+                            RandomAccessFile raf = new RandomAccessFile(file, "r");
+                            ReadableByteChannel ch = Channels.newChannel(new FileInputStream(file));
                             
-//                            ImageView view = new ImageView(fxImage);
-//                            //view.maxWidth(300);
-//                            border.setRight(view);
+                            FileChannel channel = raf.getChannel();
+                            ByteBuffer buff = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+                            PDFFile pdfFile = new PDFFile(buff);
                             
-                        //File file = new File(directory + newValue);
-                        //FileOutputStream fos = new FileOutputStream(file);
-                        
-//                        OutputStream stream = null;
-//                        stream = new FileOutputStream(file);
-//                        byte[] buffer = null;
-//                        stream.write(buffer);
-//                        ByteBuffer buf = ByteBuffer.wrap(buffer);                        
-//                        PDFFile pdf = new PDFFile(buf);                                                
-                        
-                    } catch (Exception e) {
+                            PDFPage page = pdfFile.getPage(1);
+                            
+                            Rectangle rect = new Rectangle(0, 0, 
+                            (int) page.getBBox().getWidth(), 
+                            (int) page.getBBox().getHeight());
+                            
+                            java.awt.Image image = page.getImage(rect.width, rect.height, rect, null, true, true);
+                            
+                            if (!(image instanceof RenderedImage)) {
+                                BufferedImage bufferedImage = new BufferedImage(image.getWidth(null),
+                                image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+                                Graphics g = bufferedImage.createGraphics();
+                                g.drawImage(image, 0, 0, null);
+                                g.dispose();
+
+                                image = bufferedImage;
+                            }
+                            
+                            ByteArrayOutputStream out = new ByteArrayOutputStream();
+                            ImageIO.write((RenderedImage) image, "png", out);
+                            out.flush();
+                            ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+                    
+                            Image imageFx = new Image(in);
+                            ImageView view = new ImageView(imageFx);                            
+                            view.maxWidth(200);
+                    
+                            BorderPane.setMargin(view, new Insets(10));
+                            border.setRight(view);
+                            
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }                  
                 }
                 else
@@ -184,7 +230,6 @@ public class FileExplorer0 extends Application {
                     border.setRight(right);
                     BorderPane.setAlignment(right, Pos.CENTER);
                 }
-                
             }
         });
         

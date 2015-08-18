@@ -38,8 +38,12 @@ import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 /**
  *
- * @author ACER
+ * @author Eric O. Jonathan
+ * Brief description:
+ *  This is a tryout project using JavaFX to create an application explorer
+ *  that preview files within the designated folder.
  */
+
 public class FileExplorer0 extends Application {
     
     BorderPane border = new BorderPane();
@@ -134,8 +138,10 @@ public class FileExplorer0 extends Application {
                         BorderPane.setAlignment(pane, Pos.CENTER);
                         BorderPane.setMargin(pane, new Insets(5,5,5,5));
                         border.setRight(pane);
+                        
                     } catch (Exception e) {
                         e.printStackTrace();
+                        
                     } 
                 }
                 else if(ext[1].equals("jpg") || 
@@ -166,13 +172,10 @@ public class FileExplorer0 extends Application {
 //                        byte[] buffer = null;
 //                        stream.write(buffer);
 //                        ByteBuffer buf = ByteBuffer.wrap(buffer);                        
-//                        PDFFile pdf = new PDFFile(buf);
-                        
-                        
+//                        PDFFile pdf = new PDFFile(buf);                                                
                         
                     } catch (Exception e) {
-                    }
-                    
+                    }                  
                 }
                 else
                 {
@@ -184,8 +187,6 @@ public class FileExplorer0 extends Application {
                 
             }
         });
-        
-        
         
         border.setBottom(bottom);
 		
